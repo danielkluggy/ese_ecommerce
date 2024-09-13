@@ -1,0 +1,14 @@
+services:
+  api:
+    container_name: eseecommerce
+    build:
+      context: .
+    ports:
+      - "8080:8080"
+    networks:
+      - eseklugdorow
+
+networks:
+  eseklugdorow:
+    name: eseklugdorow
+    external: true
