@@ -1,0 +1,45 @@
+spring.datasource.url=jdbc:
+server:
+  servlet:
+    context-path: /
+  port:
+    8081
+
+spring:
+  config:
+    import: env.properties
+  application:
+    name: eseecommerce
+  datasource:
+    url: jdbc:postgresql://ese-ecommerce-ese-ecommerce.g.aivencloud.com:21636/ecommerce?ssl=require
+    username: avnadmin
+    password: ${POSTGRESQL_PASSWORD}
+    driverClassName: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        jdbc:
+          lob:
+            non_contextual_creation: true
+  jackson:
+    serialization:
+      FAIL_ON_EMPTY_BEANS: false
+
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://eseeureka:8761/eureka    
+
+openapi:
+  service:
+    title: eseecommerce doc
+    version: 1.0.0
+    url: http://eseapigateway:8080
+
+springdoc:
+  api-docs:
+    path: /eseecommerce/v3/api-docs
+  swagger-ui:
+    path: /eseecommerce/swagger-ui.html
