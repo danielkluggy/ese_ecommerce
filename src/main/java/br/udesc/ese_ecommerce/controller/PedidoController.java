@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import br.udesc.ese_ecommerce.dto.PedidoDto;
+import br.udesc.ese_ecommerce.dto.PedidoRetornoDto;
 import br.udesc.ese_ecommerce.exception.ObjectNotFoundException;
 import br.udesc.ese_ecommerce.model.PedidoModel;
 import br.udesc.ese_ecommerce.model.StatusPedido;
@@ -39,8 +40,6 @@ public class PedidoController {
 	@PostMapping
 	public ResponseEntity<Object> savePedido(@RequestBody @Valid PedidoDto pedidoDto) {
 		PedidoModel pedidoModel = new PedidoModel();
-		// pedidoModel.setClienteId(pedidoDto.getClienteId());
-		// pedidoModel.setEnderecoId(pedidoDto.getEnderecoId());
 		BeanUtils.copyProperties(pedidoDto, pedidoModel);
 		pedidoModel.setDtPedido(new Date());
 		pedidoModel.setStatus(StatusPedido.AGUARDANDO_PAGAMENTO);
@@ -55,30 +54,16 @@ public class PedidoController {
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(getMessageEnderecoNotFound());
 		}
 
-		if (!pedidoService.validarProdutos(pedidoDto.getProdutosVendidos()))
+		if (!pedidoService.validarProdutos(pedidoDto))
 		{
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(getMessageProdutosNotFound());
 		}
 
-		return ResponseEntity.status(HttpStatus.CREATED).body(pedidoService.save(pedidoModel));
+		pedidoModel.setProdutosVendidos(pedidoService.createListPedidoProdutoModel(pedidoDto, pedidoModel));
+		pedidoService.save(pedidoModel);
 
-		// List<PedidoProdutoDto> pedidoProdutoDto = pedidoDto.getPedidoProdutoDto();
-
-		// if (!pedidoService.validarProdutos(pedidoProdutoDto))
-		// {
-		// 	return ResponseEntity.status(HttpStatus.NOT_FOUND).body(getMessageProdutosNotFound());
-		// }
-		
-		// List<PedidoProdutoModel> produtos = new ArrayList<>();
-		// for (PedidoProdutoDto produtoVendidoDto : pedidoProdutoDto) {
-		// 	PedidoProdutoModel produtoVendido = new PedidoProdutoModel();
-		// 	BeanUtils.copyProperties(produtoVendidoDto, produtoVendido);
-		// 	produtos.add(produtoVendido);
-		// }
-		
-		// pedidoModel.setProdutosVendidos(produtos);
-
-		// return ResponseEntity.status(HttpStatus.CREATED).body(pedidoModel);
+		PedidoRetornoDto retorno = pedidoService.getRetornoDto(pedidoModel);
+		return ResponseEntity.status(HttpStatus.CREATED).body(retorno);
 	}
 	
 	@GetMapping
@@ -93,7 +78,9 @@ public class PedidoController {
 		if (!pedidoModelOptional.isPresent()) {
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(getMessagePedidoNotFound());
 		}
-		return ResponseEntity.status(HttpStatus.OK).body(pedidoModelOptional.get());
+		PedidoRetornoDto pedidoRetornoDto = pedidoService.getRetornoDto(pedidoModelOptional.get());
+		
+		return ResponseEntity.status(HttpStatus.OK).body(pedidoRetornoDto);
 	}
 	
 	@GetMapping("/byCliente/{id}")
@@ -116,30 +103,41 @@ public class PedidoController {
 		return ResponseEntity.status(HttpStatus.OK).body(getMessagePedidoDeleted());
 	}
 	
-	@PostMapping("/confirmarPagamento/{id}")
-	public ResponseEntity<Object> confirmarPagamento(@PathVariable(value = "id") UUID id) throws ObjectNotFoundException{
-		Optional<PedidoModel> pedido = pedidoService.findById(id);
-		if(!pedido.isPresent()) {
+	@PostMapping("/{id}/pagar")
+	public ResponseEntity<Object> pagar(@PathVariable(value = "id") UUID id) throws ObjectNotFoundException{
+		Optional<PedidoModel> pedidoOptional = pedidoService.findById(id);
+		if(!pedidoOptional.isPresent()) {
 			throw new ObjectNotFoundException(getMessagePedidoNotFound());
 		}
-		if(pedido.get().getStatus() == StatusPedido.AGUARDANDO_PAGAMENTO) {
-			pedido.get().setStatus(StatusPedido.AGUARDANDO_ENVIO);
-			return ResponseEntity.status(HttpStatus.OK).body(this.pedidoService.save(pedido.get()));			
-		}		
-		return ResponseEntity.status(HttpStatus.OK).body("Pedido não esta Aguardando Pagamento");
+		PedidoModel pedido = pedidoOptional.get();
+		String mensagem = pedido.pagar();
+		pedidoService.save(pedido);
+		return ResponseEntity.status(HttpStatus.OK).body(mensagem);
 	}
 	
-	// @PostMapping("/updateStatus/{id}")
-	// public ResponseEntity<Object> updateStatusPedido(@PathVariable(value = "id") UUID id, 
-	// 												 @RequestBody @Valid PedidoDto pedidoDto) throws ObjectNotFoundException {
-	// 	Optional<PedidoModel> pedido = pedidoService.findById(id);
-	// 	if(!pedido.isPresent()) {
-	// 		throw new ObjectNotFoundException(getMessagePedidoNotFound());
-	// 	}
-	// 	pedido.get().setStatus(pedidoDto.getStatus());
-		
-	// 	return ResponseEntity.status(HttpStatus.OK).body(this.pedidoService.save(pedido.get()));
-	// }
+	@PostMapping("/{id}/enviar")
+	public ResponseEntity<Object> enviar(@PathVariable(value = "id") UUID id) throws ObjectNotFoundException{
+		Optional<PedidoModel> pedidoOptional = pedidoService.findById(id);
+		if(!pedidoOptional.isPresent()) {
+			throw new ObjectNotFoundException(getMessagePedidoNotFound());
+		}
+		PedidoModel pedido = pedidoOptional.get();
+		String mensagem = pedido.enviar();
+		pedidoService.save(pedido);
+		return ResponseEntity.status(HttpStatus.OK).body(mensagem);
+	}
+
+	@PostMapping("/{id}/finalizar")
+	public ResponseEntity<Object> finalizar(@PathVariable(value = "id") UUID id) throws ObjectNotFoundException{
+		Optional<PedidoModel> pedidoOptional = pedidoService.findById(id);
+		if(!pedidoOptional.isPresent()) {
+			throw new ObjectNotFoundException(getMessagePedidoNotFound());
+		}
+		PedidoModel pedido = pedidoOptional.get();
+		String mensagem = pedido.finalizar();
+		pedidoService.save(pedido);
+		return ResponseEntity.status(HttpStatus.OK).body(mensagem);
+	}
 	
 	protected String getMessagePedidoNotFound() {
 		return "Pedido não encontrado!";

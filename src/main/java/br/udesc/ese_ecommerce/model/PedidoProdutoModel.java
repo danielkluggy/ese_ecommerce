@@ -2,6 +2,8 @@ package br.udesc.ese_ecommerce.model;
 
 import java.util.UUID;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -10,8 +12,10 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import lombok.Data;
 
 @Entity
+@Data
 @Table(name = "pedidoProduto")
 public class PedidoProdutoModel {
 	@Id
@@ -26,54 +30,13 @@ public class PedidoProdutoModel {
 	private UUID produtoId;
 
 	@Column(nullable = false)
-	private Integer quantidade;
+	private Integer quantidadeVendida;
 
     @Column(nullable = false)
-	private Integer valor;
+	private Double valor;
 
-	public PedidoProdutoModel() {
-	}
-
-	public UUID getPedidoProdutoId() {
-		return pedidoProdutoId;
-	}
-
-	public void setPedidoProdutoId(UUID pedidoProdutoId) {
-		this.pedidoProdutoId = pedidoProdutoId;
-	}
-
+	@JsonBackReference
 	public PedidoModel getPedidoId() {
-        return pedidoId;
-    }
-
-    public void setPedidoId(PedidoModel pedidoId) {
-        this.pedidoId = pedidoId;
-    }
-
-	public UUID getProdutoId() {
-        return produtoId;
-    }
-
-    public void setProdutoId(UUID produtoId) {
-        this.produtoId = produtoId;
-    }
-
-    public Integer getQuantidade() {
-        return quantidade;
-    }
-
-    public void setQuantidade(Integer quantidade) {
-        this.quantidade = quantidade;
-    }
-
-    public Integer getValor() {
-        return valor;
-    }
-
-    public void setValor(Integer valor) {
-        this.valor = valor;
-    }
-
-
-	
+		return pedidoId;
+	}
 }
