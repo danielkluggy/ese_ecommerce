@@ -2,6 +2,8 @@ package br.udesc.ese_ecommerce.model;
 
 import java.util.UUID;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -31,5 +33,10 @@ public class PedidoProdutoModel {
 	private Integer quantidadeVendida;
 
     @Column(nullable = false)
-	private Double valor;	
+	private Double valor;
+
+	@JsonBackReference
+	public PedidoModel getPedidoId() {
+		return pedidoId;
+	}
 }
