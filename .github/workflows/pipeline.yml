@@ -62,8 +62,12 @@ jobs:
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
 
       # Configuração da senha do PostgreSQL
-      - name: Set PostgreSQL password as environment variable
-        run: echo "POSTGRESQL_PASSWORD=${{ secrets.POSTGRESQL_PASSWORD }}" >> $GITHUB_ENV
+      - name: Find and Replace
+        uses: jacobtomlinson/gha-find-replace@v3
+        with:
+          find: ${POSTGRESQL_PASSWORD}
+          replace: ${{ secrets.POSTGRESQL_PASSWORD }}
+          regex: false
 
       # Criar e publicar a imagem Docker
       - name: Build and push Docker image
