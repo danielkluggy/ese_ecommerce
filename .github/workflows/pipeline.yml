@@ -1,0 +1,90 @@
+name: Java CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+  pull_request:
+    branches:
+      - main
+      - develop
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    environment: ${{ github.ref_name == 'main' && 'HOMOLOG' || 'DEVELOP' }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up JDK
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Cache Maven packages
+        uses: actions/cache@v3
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-m2-
+
+      - name: Extract app name and version
+        id: extract-pom
+        run: |
+          APP_NAME=$(mvn help:evaluate -Dexpression=project.name -q -DforceStdout)
+          APP_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+          echo "app_name=$APP_NAME" >> $GITHUB_ENV
+          echo "app_version=$APP_VERSION" >> $GITHUB_ENV
+          
+      # Definir a tag com ou sem o sufixo
+      - name: Set image tag
+        id: set-tag
+        run: |
+          if [ "${{ github.ref_name }}" == "main" ]; then
+            IMAGE_TAG=${{ env.app_version }}
+          else
+            IMAGE_TAG=${{ env.app_version }}-dev
+          fi
+          echo "image_tag=$IMAGE_TAG" >> $GITHUB_ENV
+
+      - name: Build application
+        run: mvn clean package -DskipTests
+
+      - name: Log in to DockerHub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_PASSWORD }}
+
+      # Criar e publicar a imagem Docker
+      - name: Build and push Docker image
+        run: |
+          IMAGE_NAME=${{ secrets.DOCKER_USERNAME }}/${{ env.app_name }}
+          echo "Building Docker image $IMAGE_NAME:${{ env.image_tag }} for $ENVIRONMENT environment."
+
+          # Build imagem com a tag específica
+          docker build -t $IMAGE_NAME:${{ env.image_tag }} .
+          docker push $IMAGE_NAME:${{ env.image_tag }}
+
+          # Tag adicional como "latest" (apenas para main)
+          if [ "${{ github.ref_name }}" == "main" ]; then
+            docker tag $IMAGE_NAME:${{ env.image_tag }} $IMAGE_NAME:latest
+            docker push $IMAGE_NAME:latest
+          fi
+
+      - name: SonarCloud Scan
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: |
+          mvn sonar:sonar \
+            -Dsonar.projectKey=${{ secrets.SONAR_PROJECT_KEY }} \
+            -Dsonar.organization=${{ secrets.SONAR_ORGANIZATION }} \
+            -Dsonar.host.url=https://sonarcloud.io \
+            -Dsonar.login=$SONAR_TOKEN
+
+
