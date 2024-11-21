@@ -64,7 +64,7 @@ jobs:
       # Criar e publicar a imagem Docker
       - name: Build and push Docker image
         run: |
-          IMAGE_NAME=${{ secrets.DOCKER_USERNAME }}/${{ env.app_name }}
+          IMAGE_NAME=${{ secrets.DOCKERHUB_USERNAME }}/${{ env.app_name }}
           echo "Building Docker image $IMAGE_NAME:${{ env.image_tag }} for $ENVIRONMENT environment."
 
           # Build imagem com a tag específica
