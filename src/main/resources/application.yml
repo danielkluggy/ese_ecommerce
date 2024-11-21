@@ -6,8 +6,8 @@ server:
     8081
 
 spring:
-  config:
-    import: env.properties
+  # config:
+  #   import: env.properties
   application:
     name: eseecommerce
   datasource:
