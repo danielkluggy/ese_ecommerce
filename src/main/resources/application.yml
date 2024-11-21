@@ -6,14 +6,14 @@ server:
     8081
 
 spring:
-  # config:
-  #   import: env.properties 
+  config:
+    import: env.properties 
   application:
     name: eseecommerce
   datasource:
     url: jdbc:postgresql://ese-ecommerce-ese-ecommerce.g.aivencloud.com:21636/ecommerce?ssl=require
     username: avnadmin
-    password: ${POSTGRESQL_PASSWORD}
+    password: ${POSTGRESQL_PASSWORD_VAR}
     driverClassName: org.postgresql.Driver
   jpa:
     hibernate:
