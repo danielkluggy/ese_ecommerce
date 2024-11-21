@@ -61,6 +61,10 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
 
+      # Configuração da senha do PostgreSQL
+      - name: Set PostgreSQL password as environment variable
+        run: echo "POSTGRESQL_PASSWORD=${{ secrets.POSTGRESQL_PASSWORD }}" >> $GITHUB_ENV
+
       # Criar e publicar a imagem Docker
       - name: Build and push Docker image
         run: |
