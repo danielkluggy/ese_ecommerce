@@ -10,8 +10,8 @@
 	</parent>
 	<groupId>br.udesc</groupId>
 	<artifactId>ese_ecommerce</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
-	<name>ese_ecommerce</name>
+	<version>1.0.0</version>
+	<name>ese-ecommerce</name>
 	<url/>
 	<licenses>
 		<license/>
