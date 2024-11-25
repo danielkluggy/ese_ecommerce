@@ -10,7 +10,7 @@
 	</parent>
 	<groupId>br.udesc</groupId>
 	<artifactId>ese_ecommerce</artifactId>
-	<version>1.0.0</version>
+	<version>1.1.0</version>
 	<name>ese-ecommerce</name>
 	<url/>
 	<licenses>
@@ -86,6 +86,12 @@
 				<artifactId>spring-boot-maven-plugin</artifactId>
 			</plugin>
 		</plugins>
+		<resources>
+			<resource>
+				<directory>src/main/resources</directory>
+				<filtering>true</filtering>
+			</resource>
+		</resources>
 	</build>
 
 </project>
